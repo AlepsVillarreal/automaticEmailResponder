@@ -38,10 +38,22 @@ smtpObj.quit()
 #Trying out IMAP to retrieve emails
 imapObj = imapclient.IMAPClient('imap-mail.outlook.com', ssl=True)
 
-imapObj.select(mailbox='INBOX', readonly=True)
-
-pprint.pprint(imapObj.list_folders())
-
 #logging in imap object
 imapObj.login(originEmail, password)
+
+#Selecting folder to read files from
+imapObj.select_folder('INBOX', readonly=True)
+
+#pprint.pprint(imapObj.list_folders())
+
+#Selecting UIDs of emails - setting criteria
+msgnums = imapObj.search('(ON "01-Jan-2019")')
+
+#Printing UIDs of emails
+print (msgnums)
+
+#Fetching emails
+imapObj.fetch()
+
+
 
