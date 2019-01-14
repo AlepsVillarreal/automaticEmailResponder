@@ -1,5 +1,8 @@
 import os
 import sys
+import pyzmail
+import imapclient
+import pprint
 from credentials import originEmail, password, destinationEmail
 import smtplib
 
@@ -26,8 +29,19 @@ smtpObj.starttls()
 smtpObj.login(originEmail, password)
 
 #Test of sending an originEmail
-smtpObj.sendmail(originEmail, destinationEmail,
-'Subject: So long.\nDear Alice, so long and thanks for all the fish. Sincerely, Bob')
+#smtpObj.sendmail(originEmail, destinationEmail,
+#'Subject: So long.\nDear Alice, so long and thanks for all the fish. Sincerely, Bob')
 
 #Logging off
 smtpObj.quit()
+
+#Trying out IMAP to retrieve emails
+imapObj = imapclient.IMAPClient('imap-mail.outlook.com', ssl=True)
+
+imapObj.select(mailbox='INBOX', readonly=True)
+
+pprint.pprint(imapObj.list_folders())
+
+#logging in imap object
+imapObj.login(originEmail, password)
+
