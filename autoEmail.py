@@ -5,6 +5,7 @@ import imapclient
 import pprint
 from credentials import originEmail, password, destinationEmail
 import smtplib
+import html2text
 
 #Outlook port
 port = 587
@@ -61,6 +62,19 @@ message = pyzmail.PyzMessage.factory(fetched[5367][b'BODY[]'])
 
 print (message.get_subject())
 
-#pprint.pprint(fetched)
+print (message.get_addresses('from'))
+
+print (message.get_addresses('to'))
+
+#print (message.text_part.get_payload().decode(message.text_part.charset))
+
+#print (message.html_part.get_payload().decode(message.text_part.charset))
+#print (message.html_part.get_payload().decode(message.html_part.charset))
+
+body = html2text.html2text(message.html_part.get_payload().decode(message.html_part.charset))
+
+print (body)
+
+imapObj.logout()
 
 
