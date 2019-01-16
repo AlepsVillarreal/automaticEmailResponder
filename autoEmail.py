@@ -47,13 +47,20 @@ imapObj.select_folder('INBOX', readonly=True)
 #pprint.pprint(imapObj.list_folders())
 
 #Selecting UIDs of emails - setting criteria
-msgnums = imapObj.search('(ON "01-Jan-2019")')
+UIDs = imapObj.search('(ON "15-Jan-2019")')
 
 #Printing UIDs of emails
-print (msgnums)
+print (UIDs)
 
 #Fetching emails
-imapObj.fetch()
+fetched = imapObj.fetch(UIDs,  ['BODY[]'])
 
+
+#UIDs to use [5350, 5354, 5360, 5367, 5371, 5378]
+message = pyzmail.PyzMessage.factory(fetched[5367][b'BODY[]'])
+
+print (message.get_subject())
+
+#pprint.pprint(fetched)
 
 
