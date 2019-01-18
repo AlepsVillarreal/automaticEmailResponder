@@ -55,17 +55,29 @@ fetched = imapObj.fetch(UIDs,  ['BODY[]'])
 i = 0
 for element in UIDs:
 	message = pyzmail.PyzMessage.factory(fetched[element][b'BODY[]'])
+	bodyText = ''
 	bodyOfPusherEmails = (message.text_part.get_payload().decode(message.text_part.charset))
 	for word in bodyOfPusherEmails.split():
 		#print ('word is: ' + word)
 		if 'RTN:0' in word:
+			#Nothing went wrong here
+			bodyText +=str(word)
 			break
 		elif 'RTN:1' in word:
 			#Send an email saying that it broke	
+			bodyText +=str(word)
 			i += 1
-			print ("%d - error in: "%i)
-			print(message.get_subject())
-
+			print ("Error number %d  "%i)
+			print ('Subject: %r' % (message.get_subject(), ))
+			print ('From: %r' % (message.get_address('from'), ))
+			print ('To: %r' % (message.get_addresses('to'), ))
+			print ('Cc: %r' % (message.get_addresses('cc'), ))
+			print('\n')
+			print('LOG MESSAGE')
+			print (bodyText)
+			print('\n')
+		else:
+			bodyText +=str(word)
 
 #
 ###UIDs to use [5350, 5354, 5360, 5367, 5371, 5378]
