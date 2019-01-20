@@ -8,76 +8,97 @@ import smtplib
 import datetime
 import html2text
 
-#Setting up dynamic variables for search criteria
-numericalMonthStringDict = {1:'Jan'}
+def createEmailFromLog():
+	try:
+		#Sending email part
+		#Outlook port
+		port = 587
+		##SMTP server domain name - TLS
+		smtpObj = smtplib.SMTP('smtp-mail.outlook.com', 587)
 
-#Get current date
-now = datetime.datetime.now()
+		##Check for errors in object
+		print (smtpObj.ehlo())
+		#
+		##Set up encrypted SMTP connection
+		smtpObj.starttls()
+		#
+		##Logging in
+		print (smtpObj.login(originEmail, password))
+		smtpObj.login(originEmail, password)
+		#
+		##Test of sending an originEmail
+		smtpObj.sendmail(originEmail, destinationEmail,
+		'Subject: So long.\nDear Alice, so long and thanks for all the fish. Sincerely, Bob')
 
-for key, value in numericalMonthStringDict.items():
-	if now.month == key:
-		month = value
+		#Logging off
+		smtpObj.quit()
 
-dynamicDate = '%d-%s-%d' %(now.day, month, now.year)
+	except Exception as e:
+		print ("Error in createEmailFromLog function - %s" %e)
 
-#searchParameter = "(ON \"%d-%s-%d\")" %(now.day, month, now.year)
+def readUnreadPusherEmails():
+	try:
+		#Variable to save the result of the function 
+		resultDict = {}
 
-#print ('searchParameter is ' + searchParameter)
+		#Trying out IMAP to retrieve emails
+		imapObj = imapclient.IMAPClient('imap-mail.outlook.com', ssl=True)
 
+		#Selecting UIDs of emails - setting criteria
+		#UIDs = imapObj.search('(ON "15-Jan-2019")')
 
-#Trying out IMAP to retrieve emails
-imapObj = imapclient.IMAPClient('imap-mail.outlook.com', ssl=True)
+		#logging in imap object
+		imapObj.login(originEmail, password)
 
-#Selecting UIDs of emails - setting criteria
-#UIDs = imapObj.search('(ON "15-Jan-2019")')
+		### DEV SET
+		##Selecting folder to read files from
+		imapObj.select_folder('INBOX/Pusher.py/DEV', readonly=True)
+		###Selecting UIDs of emails - setting criteria
+		UIDs = imapObj.search('(FROM dwopr@ausxeptdmo02.activant.com)') 
 
-#logging in imap object
-imapObj.login(originEmail, password)
+		##Printing UIDs of emails
+		print (UIDs)
 
-### ACDB1 SET
-##Selecting folder to read files from
-#imapObj.select_folder('INBOX/Pusher.py/ACDB1', readonly=True)
-###Selecting UIDs of emails - setting criteria
-#UIDs = imapObj.search('(FROM dwopr@AUSVACDODB02.activant.com)') 
+		##Fetching emails
+		fetched = imapObj.fetch(UIDs,  ['BODY[]'])
+		i = 0
+		for element in UIDs:
+			message = pyzmail.PyzMessage.factory(fetched[element][b'BODY[]'])
+			bodyText = ''
+			bodyOfPusherEmails = (message.text_part.get_payload().decode(message.text_part.charset))
+			for word in bodyOfPusherEmails.split():
+				#print ('word is: ' + word)
+				if 'RTN:0' in word:
+					#Nothing went wrong here
+					bodyText +=str(word)
+					break
+				elif 'RTN:1' in word:
+					#Send an email saying that it broke	
+					bodyText +=str(word)
+					i += 1
+					messageSubject = message.get_subject()
+					messageFrom = (message.get_address('from'),)
+					messageTo = message.get_addresses('to')
+					messageCC = message.get_addresses('cc')
+					messageBody = bodyText
+					print ("Error email number %d  "%i)
+					print ('Subject: %s' %messageSubject)
+					print ('From: %s' % (message.get_address('from'), ))
+					print ('To: %s' % (message.get_addresses('to') ))
+					print ('Cc: %s' %message.get_addresses('cc'))
+					print('\n')
+					print('LOG MESSAGE')
+					print (bodyText)
+					print('\n\n')
 
-### DEV SET
-##Selecting folder to read files from
-imapObj.select_folder('INBOX/Pusher.py/DEV', readonly=True)
-###Selecting UIDs of emails - setting criteria
-UIDs = imapObj.search('(FROM dwopr@ausxeptdmo02.activant.com)') 
+				else:
+					bodyText +=str(word)
 
+		imapObj.logout()
+	except Exception as e:
+		print ('Something went wrong with readUnreadPusherEmails - %s' %e)
 
-
-##Printing UIDs of emails
-print (UIDs)
-##Fetching emails
-fetched = imapObj.fetch(UIDs,  ['BODY[]'])
-i = 0
-for element in UIDs:
-	message = pyzmail.PyzMessage.factory(fetched[element][b'BODY[]'])
-	bodyText = ''
-	bodyOfPusherEmails = (message.text_part.get_payload().decode(message.text_part.charset))
-	for word in bodyOfPusherEmails.split():
-		#print ('word is: ' + word)
-		if 'RTN:0' in word:
-			#Nothing went wrong here
-			bodyText +=str(word)
-			break
-		elif 'RTN:1' in word:
-			#Send an email saying that it broke	
-			bodyText +=str(word)
-			i += 1
-			print ("Error number %d  "%i)
-			print ('Subject: %r' % (message.get_subject(), ))
-			print ('From: %r' % (message.get_address('from'), ))
-			print ('To: %r' % (message.get_addresses('to'), ))
-			print ('Cc: %r' % (message.get_addresses('cc'), ))
-			print('\n')
-			print('LOG MESSAGE')
-			print (bodyText)
-			print('\n')
-		else:
-			bodyText +=str(word)
+readUnreadPusherEmails()
 
 #
 ###UIDs to use [5350, 5354, 5360, 5367, 5371, 5378]
@@ -103,29 +124,21 @@ for element in UIDs:
 	#	#Send an email saying that it broke
 	#	print ('It broke')
 
-imapObj.logout()
 
+#Setting up dynamic variables for search criteria
+#numericalMonthStringDict = {1:'Jan'}
 
+#Get current date
+#now = datetime.datetime.now()
 
-##Sending email part
-#Outlook port
-#port = 587
-##SMTP server domain name - TLS
-#smtpObj = smtplib.SMTP('smtp-mail.outlook.com', 587)
-#
-##Check for errors in object
-##print (smtpObj.ehlo())
-#
-##Set up encrypted SMTP connection
-#smtpObj.starttls()
-#
-##Logging in
-##print (smtpObj.login(originEmail, password))
-#smtpObj.login(originEmail, password)
-#
-##Test of sending an originEmail
-##smtpObj.sendmail(originEmail, destinationEmail,
-##'Subject: So long.\nDear Alice, so long and thanks for all the fish. Sincerely, Bob')
-#
-##Logging off
-#smtpObj.quit()
+#for key, value in numericalMonthStringDict.items():
+#	if now.month == key:
+#		month = value
+
+#dynamicDate = '%d-%s-%d' %(now.day, month, now.year)
+
+### ACDB1 SET
+##Selecting folder to read files from
+#imapObj.select_folder('INBOX/Pusher.py/ACDB1', readonly=True)
+###Selecting UIDs of emails - setting criteria
+#UIDs = imapObj.search('(FROM dwopr@AUSVACDODB02.activant.com)') 
