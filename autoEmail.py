@@ -62,7 +62,8 @@ def readUnreadPusherEmails():
 		##Selecting folder to read files from
 		imapObj.select_folder('INBOX/Pusher.py/DEV', readonly=True)
 		###Selecting UIDs of emails - setting criteria
-		UIDs = imapObj.search('(FROM dwopr@ausxeptdmo02.activant.com)') 
+		#UIDs = imapObj.search('(UNSEEN)')
+		UIDs = imapObj.search('(FROM dwopr@ausxeptdmo02.activant.com UNSEEN)') 
 
 		##Printing UIDs of emails
 		print (UIDs)
