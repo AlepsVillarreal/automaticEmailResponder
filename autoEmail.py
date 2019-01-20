@@ -8,7 +8,7 @@ import smtplib
 import datetime
 import html2text
 
-def createEmailFromLog():
+def createEmailFromLog(emailsDict):
 	try:
 		#Sending email part
 		#Outlook port
@@ -25,10 +25,18 @@ def createEmailFromLog():
 		##Logging in
 		print (smtpObj.login(originEmail, password))
 		smtpObj.login(originEmail, password)
-		#
-		##Test of sending an originEmail
-		smtpObj.sendmail(originEmail, destinationEmail,
-		'Subject: So long.\nDear Alice, so long and thanks for all the fish. Sincerely, Bob')
+
+		for key, value in emailsDict.items():
+			subject = value[0]
+			body = '\n' + value[-1]
+			print ('Error email number: %s' %key)
+			print ('Subject is: %s' %subject)
+			print ('Body is: %s' %body)
+			#Test of sending an originEmail
+			smtpObj.sendmail(originEmail, destinationEmail,'Subject: %s\n%s' %(subject, body))
+			#Test with only one email
+			if key == 1:
+				break
 
 		#Logging off
 		smtpObj.quit()
@@ -80,25 +88,24 @@ def readUnreadPusherEmails():
 					messageFrom = (message.get_address('from'),)
 					messageTo = message.get_addresses('to')
 					messageCC = message.get_addresses('cc')
-					messageBody = bodyText
-					print ("Error email number %d  "%i)
-					print ('Subject: %s' %messageSubject)
-					print ('From: %s' % (message.get_address('from'), ))
-					print ('To: %s' % (message.get_addresses('to') ))
-					print ('Cc: %s' %message.get_addresses('cc'))
-					print('\n')
-					print('LOG MESSAGE')
-					print (bodyText)
-					print('\n\n')
+					emailInfoList = (messageSubject, messageFrom, messageTo, messageCC, bodyText)
+					resultDict[i] = emailInfoList
 
 				else:
 					bodyText +=str(word)
 
 		imapObj.logout()
+		return resultDict
+
 	except Exception as e:
 		print ('Something went wrong with readUnreadPusherEmails - %s' %e)
 
-readUnreadPusherEmails()
+emailsDict = readUnreadPusherEmails()
+createEmailFromLog(emailsDict)
+
+#for key, value in emailsDict.items():
+#	print ('Key is: %d' %key)
+#	print ('Value is: %s' %str(value))
 
 #
 ###UIDs to use [5350, 5354, 5360, 5367, 5371, 5378]
@@ -111,6 +118,17 @@ readUnreadPusherEmails()
 #
 #print (message.get_addresses('to'))
 
+
+#print ("Error email number %d  "%i)
+#print ('Subject: %s' %messageSubject)
+#print ('From: %s' % (message.get_address('from'), ))
+#print ('To: %s' % (message.get_addresses('to') ))
+#print ('Cc: %s' %message.get_addresses('cc'))
+#print('\n')
+#print('LOG MESSAGE')
+#print (bodyText)
+#print('\n\n')
+					
 
 
 ##THIS PART READS AN INDIVIDUAL EMAIL BODY AND DETECTS WHEN RTN IS BESIDES 0
